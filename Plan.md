@@ -1,6 +1,6 @@
 # Project Structure for Terminal-based Chat Application
 
-## Overview
+# Overview
 
 This document explains the directory and file structure for a terminal-based chat application built using Go, Gorilla for the web framework, and Bubble Tea for the TUI (text user interface).
 
