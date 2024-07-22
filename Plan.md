@@ -83,7 +83,7 @@ chat-app/
   - `go.mod`: Defines the module path and its dependencies.
   - `go.sum`: Holds checksums for module versions to ensure integrity and reproducibility.
 
-## Detailed Workflow
+## Detailed Workflow.
 
 1. **Initialization (`cmd/chat/main.go`):**
 
