@@ -1,25 +1,7 @@
 package main
 
-import (
-	"github.com/Sabir222/go-terminal-chat/pkg/client"
-	"github.com/Sabir222/go-terminal-chat/pkg/server"
-	"log"
-	"net/http"
-)
+import ()
 
 func main() {
 
-	go func() {
-		http.HandleFunc("/", server.Handler)
-		log.Println("Server started on localhost:8080")
-		if err := http.ListenAndServe(":8080", nil); err != nil {
-			log.Fatal("ListenAndServe:", err)
-		}
-	}()
-
-	go func() {
-		client.Client()
-	}()
-
-	select {}
 }

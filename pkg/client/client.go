@@ -1,8 +1,9 @@
-package client
+package main
 
 import (
 	"github.com/gorilla/websocket"
 	"log"
+	"os"
 	"time"
 )
 
@@ -18,7 +19,7 @@ func Client() {
 	defer conn.Close()
 
 	done := make(chan struct{})
-	msgChannel := make(chan []byte)
+	interrupt := make(chan os.Signal, 1)
 
 	go func() {
 		defer close(done)
@@ -31,32 +32,31 @@ func Client() {
 		}
 	}()
 
-	go func() {
-		for {
-			select {
-			case <-done:
+	for {
+
+		msg := []byte("ping")
+		select {
+		case <-done:
+			return
+		case <-interrupt:
+			log.Println("interrupt")
+			err := conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			if err != nil {
+				log.Println("write close:", err)
 				return
-			case msg, ok := <-msgChannel:
-				if !ok {
-					return
-				}
-				err := conn.WriteMessage(websocket.TextMessage, msg)
-				if err != nil {
-					log.Printf("error sending msg")
-				}
 			}
-
+		default:
+			err := conn.WriteMessage(websocket.TextMessage, msg)
+			if err != nil {
+				log.Println("error pinging: ", err)
+				return
+			}
 		}
-	}()
+		time.Sleep(time.Second * 1)
 
-	go func() {
-		for {
-			msg := []byte("Ping!")
-			msgChannel <- msg
-			time.Sleep(time.Second * 1)
-		}
+	}
+}
 
-	}()
-	<-done
-
+func main() {
+	Client()
 }
