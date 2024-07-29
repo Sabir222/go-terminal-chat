@@ -1,7 +1,6 @@
-package server
+package main
 
 import (
-	"io"
 	"log"
 	"net/http"
 
@@ -15,60 +14,32 @@ var upgrader = websocket.Upgrader{
 }
 
 func Handler(w http.ResponseWriter, r *http.Request) {
-	// Upgrade the HTTP connection to a WebSocket connection.
-	// `w` is the HTTP response writer, and `r` is the HTTP request.
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		// Log an error if the upgrade fails.
 		log.Printf("Error upgrading connection: %v", err)
 		return
 	}
 	defer conn.Close()
 
-	go readLoop(conn)
-
 	for {
-		messageType, messageReader, err := conn.NextReader()
+		mt, msg, err := conn.ReadMessage()
 		if err != nil {
-			log.Printf("Error getting message reader: %v", err)
+			log.Println("Error reading message", err)
 			break
 		}
-
-		messageWriter, err := conn.NextWriter(messageType)
+		log.Printf("recv: %s", msg)
+		err = conn.WriteMessage(mt, msg)
 		if err != nil {
-			log.Printf("Error getting message writer: %v", err)
-			break
-		}
-
-		// Copy the data from the message reader to the message writer.
-		// This effectively echoes the received message back to the client.
-		if _, err := io.Copy(messageWriter, messageReader); err != nil {
-			// Log an error if copying the message fails.
-			log.Printf("Error copying message: %v", err)
-			break
-		}
-
-		// Close the message writer to finalize the WebSocket frame.
-		if err := messageWriter.Close(); err != nil {
-			// Log an error if closing the message writer fails.
-			log.Printf("Error closing message writer: %v", err)
+			log.Printf("error writing message: %s  ", err)
 			break
 		}
 	}
 }
 
-func readLoop(c *websocket.Conn) {
-	for {
-		_, msg, err := c.NextReader()
-		if err != nil {
-			c.Close()
-			break
-		}
-
-		message, err := io.ReadAll(msg)
-		if err != nil {
-			log.Fatal("shit")
-		}
-		log.Printf("Message content: %s", message)
+func main() {
+	http.HandleFunc("/", Handler)
+	log.Println("Server started on localhost:8080")
+	if err := http.ListenAndServe(":8080", nil); err != nil {
+		log.Fatal("ListenAndServe:", err)
 	}
 }
