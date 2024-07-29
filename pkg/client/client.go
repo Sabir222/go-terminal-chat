@@ -17,23 +17,46 @@ func Client() {
 
 	defer conn.Close()
 
+	done := make(chan struct{})
+	msgChannel := make(chan []byte)
+
 	go func() {
+		defer close(done)
 		for {
 			_, message, err := conn.ReadMessage()
 			if err != nil {
 				log.Fatal("error reading incomming messges", err)
 			}
-			log.Println("Received: in the client loop", string(message))
+			log.Println("client", string(message))
 		}
 	}()
 
-	for {
-		msg := []byte("Hello from client")
-		err := conn.WriteMessage(websocket.TextMessage, msg)
-		if err != nil {
-			log.Printf("error sending msg")
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			case msg, ok := <-msgChannel:
+				if !ok {
+					return
+				}
+				err := conn.WriteMessage(websocket.TextMessage, msg)
+				if err != nil {
+					log.Printf("error sending msg")
+				}
+			}
+
 		}
-		time.Sleep(1 * time.Second)
-	}
+	}()
+
+	go func() {
+		for {
+			msg := []byte("Ping!")
+			msgChannel <- msg
+			time.Sleep(time.Second * 1)
+		}
+
+	}()
+	<-done
 
 }

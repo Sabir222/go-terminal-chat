@@ -67,10 +67,8 @@ func readLoop(c *websocket.Conn) {
 
 		message, err := io.ReadAll(msg)
 		if err != nil {
-			c.Close()
-			break
+			log.Fatal("shit")
 		}
-		log.Printf("Message content: from the server loop %s", message)
+		log.Printf("Message content: %s", message)
 	}
-
 }
