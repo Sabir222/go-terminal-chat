@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bufio"
+	"fmt"
 	"github.com/gorilla/websocket"
 	"log"
 	"os"
@@ -20,6 +22,12 @@ func Client() {
 
 	done := make(chan struct{})
 	interrupt := make(chan os.Signal, 1)
+	reader := bufio.NewReader(os.Stdin)
+
+	fmt.Println("yo bitch whats your name ? ")
+	clientName, _ := reader.ReadString('\n')
+	//TODO: send name to server marshalling
+	fmt.Println("Fuck you ", clientName)
 
 	go func() {
 		defer close(done)
